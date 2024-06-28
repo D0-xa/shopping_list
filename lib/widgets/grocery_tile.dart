@@ -12,12 +12,6 @@ class GroceryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String quantityType = groceryItem.quantity.runtimeType == double
-        ? ' Kg'
-        : groceryItem.quantity > 1
-            ? ' Items'
-            : 'Item';
-
     return ListTile(
       leading: Container(
         color: groceryItem.category.color,
@@ -26,8 +20,9 @@ class GroceryTile extends StatelessWidget {
       ),
       horizontalTitleGap: 30,
       title: Text(groceryItem.name),
-      trailing: Text(groceryItem.quantity.toString() + quantityType),
-      leadingAndTrailingTextStyle: const TextStyle(fontSize: 16),
+      trailing: Text(groceryItem.quantity.toString()),
+      leadingAndTrailingTextStyle: TextStyle(
+          fontSize: 16, color: Theme.of(context).colorScheme.inverseSurface),
     );
   }
 }

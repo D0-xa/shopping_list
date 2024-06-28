@@ -25,7 +25,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(useMaterial3: true).copyWith(
         colorScheme: kColorScheme,
-        scaffoldBackgroundColor: const Color.fromARGB(255, 181, 188, 192),
       ),
       darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
         colorScheme: kdarkColorScheme,
