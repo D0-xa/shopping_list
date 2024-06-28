@@ -17,6 +17,6 @@ final groceryItems = [
   GroceryItem(
       id: 'c',
       name: 'Beef Steak',
-      quantity: 1,
+      quantity: 1.0,
       category: categories[Categories.meat]!),
 ];

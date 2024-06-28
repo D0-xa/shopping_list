@@ -12,21 +12,22 @@ class GroceryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        child: Row(
-      children: [
-        Container(
-          color: groceryItem.category.color,
-          height: 24,
-          width: 24,
-        ),
-        const SizedBox(
-          width: 40,
-        ),
-        Text(groceryItem.name),
-        const Spacer(),
-        Text('${groceryItem.quantity}'),
-      ],
-    ));
+    final String quantityType = groceryItem.quantity.runtimeType == double
+        ? ' Kg'
+        : groceryItem.quantity > 1
+            ? ' Items'
+            : 'Item';
+
+    return ListTile(
+      leading: Container(
+        color: groceryItem.category.color,
+        height: 24,
+        width: 24,
+      ),
+      horizontalTitleGap: 30,
+      title: Text(groceryItem.name),
+      trailing: Text(groceryItem.quantity.toString() + quantityType),
+      leadingAndTrailingTextStyle: const TextStyle(fontSize: 16),
+    );
   }
 }

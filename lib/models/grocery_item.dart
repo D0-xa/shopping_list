@@ -10,6 +10,6 @@ class GroceryItem {
 
   final String id;
   final String name;
-  final int quantity;
+  final num quantity;
   final Category category;
 }
