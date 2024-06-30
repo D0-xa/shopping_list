@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:shopping_list/Screens/new_item.dart';
-import 'package:shopping_list/data/dummy_items.dart';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/widgets/grocery_tile.dart';
 
@@ -13,7 +12,7 @@ class GroceryScreen extends StatefulWidget {
 }
 
 class _GroceryScreenState extends State<GroceryScreen> {
-  final List<GroceryItem> _groceryItems = groceryItems;
+  final List<GroceryItem> _groceryItems = [];
 
   void _addItem() async {
     final groceryItem = await Navigator.of(context).push<GroceryItem>(
