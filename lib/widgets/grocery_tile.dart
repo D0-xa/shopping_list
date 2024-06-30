@@ -14,7 +14,10 @@ class GroceryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Container(
-        color: groceryItem.category.color,
+        decoration: BoxDecoration(
+          color: groceryItem.category.color,
+          borderRadius: BorderRadius.circular(5),
+        ),
         height: 24,
         width: 24,
       ),

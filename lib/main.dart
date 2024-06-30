@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'package:shopping_list/Screens/grocery_screen.dart';
 
 final kColorScheme = ColorScheme.fromSeed(
-  seedColor: const Color.fromARGB(255, 20, 187, 228),
-  surface: const Color.fromARGB(255, 102, 125, 146),
+  seedColor: const Color.fromARGB(255, 147, 229, 250),
+  surface: const Color.fromARGB(255, 42, 51, 59),
 );
 
-final kdarkColorScheme = ColorScheme.fromSeed(
+final kDarkColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 147, 229, 250),
   brightness: Brightness.dark,
   surface: const Color.fromARGB(255, 42, 51, 59),
@@ -25,9 +26,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(useMaterial3: true).copyWith(
         colorScheme: kColorScheme,
+        appBarTheme: const AppBarTheme().copyWith(
+          backgroundColor: kColorScheme.primary,
+          foregroundColor: kColorScheme.primaryContainer,
+        ),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 216, 240, 250),
       ),
       darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
-        colorScheme: kdarkColorScheme,
+        colorScheme: kDarkColorScheme,
         scaffoldBackgroundColor: const Color.fromARGB(255, 50, 58, 60),
       ),
       title: 'Flutter Groceries',

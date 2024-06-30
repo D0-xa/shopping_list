@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:shopping_list/data/categories.dart';
+import 'package:shopping_list/models/category.dart';
+import 'package:shopping_list/models/grocery_item.dart';
 
 class NewItemScreen extends StatefulWidget {
   const NewItemScreen({super.key});
@@ -11,9 +13,21 @@ class NewItemScreen extends StatefulWidget {
 
 class NewItemScreenState extends State<NewItemScreen> {
   final _formKey = GlobalKey<FormState>();
+  var _enteredName = '';
+  var _enteredQuantity = 1;
+  var _selectedCategory = categories[Categories.vegetables]!;
 
   void _saveItem() {
-    _formKey.currentState!.validate();
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      print(DateTime.now().toString());
+      Navigator.of(context).pop(GroceryItem(
+        id: DateTime.now().toString(),
+        name: _enteredName,
+        quantity: _enteredQuantity,
+        category: _selectedCategory,
+      ));
+    }
   }
 
   @override
@@ -44,6 +58,9 @@ class NewItemScreenState extends State<NewItemScreen> {
                     }
                     return null;
                   },
+                  onSaved: (newValue) {
+                    _enteredName = newValue!;
+                  },
                 ), // instead of TextField()
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -52,7 +69,7 @@ class NewItemScreenState extends State<NewItemScreen> {
                       child: TextFormField(
                         decoration:
                             const InputDecoration(label: Text('Quantity')),
-                        initialValue: '1',
+                        initialValue: _enteredQuantity.toString(),
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           if (value == null ||
@@ -63,6 +80,9 @@ class NewItemScreenState extends State<NewItemScreen> {
                           }
                           return null;
                         },
+                        onSaved: (newValue) {
+                          _enteredQuantity = int.parse(newValue!);
+                        },
                       ),
                     ),
                     const SizedBox(
@@ -70,6 +90,7 @@ class NewItemScreenState extends State<NewItemScreen> {
                     ),
                     Expanded(
                       child: DropdownButtonFormField(
+                        value: _selectedCategory,
                         items: [
                           for (final category in categories.entries)
                             DropdownMenuItem(
@@ -77,9 +98,12 @@ class NewItemScreenState extends State<NewItemScreen> {
                               child: Row(
                                 children: [
                                   Container(
+                                    decoration: BoxDecoration(
+                                      color: category.value.color,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
                                     width: 16,
                                     height: 16,
-                                    color: category.value.color,
                                   ),
                                   const SizedBox(
                                     width: 8,
@@ -89,7 +113,11 @@ class NewItemScreenState extends State<NewItemScreen> {
                               ),
                             )
                         ],
-                        onChanged: (value) {},
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCategory = value!;
+                          });
+                        },
                       ),
                     ),
                   ],
