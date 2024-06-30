@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:shopping_list/Screens/new_item.dart';
+import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/widgets/grocery_tile.dart';
 
@@ -12,7 +16,42 @@ class GroceryScreen extends StatefulWidget {
 }
 
 class _GroceryScreenState extends State<GroceryScreen> {
-  final List<GroceryItem> _groceryItems = [];
+  List<GroceryItem> _groceryItems = [];
+  bool _isLoading = true;
+  final url = Uri.https(
+      'flutter-prep-4022-default-rtdb.firebaseio.com', 'shopping-list.json');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  void _loadItems() async {
+    final response = await http.get(url);
+    final Map<String, dynamic> groceryData = json.decode(response.body);
+    final List<GroceryItem> loadedGroceries = [];
+    for (final grocery in groceryData.entries) {
+      final category = categories.entries
+          .firstWhere(
+            (category) => category.value.title == grocery.value['category'],
+          )
+          .value;
+      loadedGroceries.add(
+        GroceryItem(
+          id: grocery.key,
+          name: grocery.value['name'],
+          quantity: grocery.value['quantity'],
+          category: category,
+        ),
+      );
+    }
+
+    setState(() {
+      _groceryItems = loadedGroceries;
+      _isLoading = false;
+    });
+  }
 
   void _addItem() async {
     final groceryItem = await Navigator.of(context).push<GroceryItem>(
@@ -78,6 +117,12 @@ class _GroceryScreenState extends State<GroceryScreen> {
         ),
       ],
     );
+
+    if (_isLoading) {
+      content = const Center(
+        child: CircularProgressIndicator.adaptive(),
+      );
+    }
 
     if (_groceryItems.isNotEmpty) {
       content = ListView.builder(
