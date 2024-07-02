@@ -25,7 +25,7 @@ class GroceryScreen extends StatefulWidget {
 
 class _GroceryScreenState extends State<GroceryScreen> {
   List<GroceryItem> _groceryItems = [];
-  bool _isLoading = true;
+  late Future<List<GroceryItem>> _loadedGroceries;
   final _url = Uri.https(
       'flutter-prep-4022-default-rtdb.firebaseio.com', 'shopping-list.json');
   String? _error;
@@ -34,58 +34,42 @@ class _GroceryScreenState extends State<GroceryScreen> {
   void initState() {
     super.initState();
     if (widget.isInitial) {
-      _isLoading = false;
       _groceryItems = widget.groceryList;
       return;
     }
-    _loadItems();
+    _loadedGroceries = _loadItems();
   }
 
-  void _loadItems() async {
-    try {
-      final response = await http.get(_url);
+  Future<List<GroceryItem>> _loadItems() async {
+    final response = await http.get(_url);
 
-      if (response.statusCode >= 400) {
-        setState(() {
-          _error = 'Failed to load data. Please try again later!';
-        });
-        return;
-      }
-
-      if (response.body == 'null') {
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final Map<String, dynamic> groceryData = json.decode(response.body);
-      final List<GroceryItem> loadedGroceries = [];
-      for (final grocery in groceryData.entries) {
-        final category = categories.entries
-            .firstWhere(
-              (category) => category.value.title == grocery.value['category'],
-            )
-            .value;
-        loadedGroceries.add(
-          GroceryItem(
-            id: grocery.key,
-            name: grocery.value['name'],
-            quantity: grocery.value['quantity'],
-            category: category,
-          ),
-        );
-      }
-
-      setState(() {
-        _groceryItems = loadedGroceries;
-        _isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        _error = 'Something went wrong! Please try again later!';
-      });
+    if (response.statusCode >= 400) {
+      throw Exception('Failed to load grocery items! Please try again later.');
     }
+
+    if (response.body == 'null') {
+      return [];
+    }
+
+    final Map<String, dynamic> groceryData = json.decode(response.body);
+    final List<GroceryItem> loadedGroceries = [];
+    for (final grocery in groceryData.entries) {
+      final category = categories.entries
+          .firstWhere(
+            (category) => category.value.title == grocery.value['category'],
+          )
+          .value;
+      loadedGroceries.add(
+        GroceryItem(
+          id: grocery.key,
+          name: grocery.value['name'],
+          quantity: grocery.value['quantity'],
+          category: category,
+        ),
+      );
+    }
+
+    return loadedGroceries;
   }
 
   void _addItem(int? index, GroceryItem? groceryEdit) async {
@@ -220,92 +204,96 @@ class _GroceryScreenState extends State<GroceryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Center(
-      heightFactor: 2,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Image.asset(
-            'assets/groceries_add.png',
-            width: 250,
-            height: 400,
-          ),
-          const Text(
-            'Once you add a new grocery, you\'ll see it listed here',
-          ),
-        ],
-      ),
-    );
-
-    if (_isLoading) {
-      content = const Center(
-        child: CircularProgressIndicator.adaptive(),
-      );
-    }
-
-    if (_groceryItems.isNotEmpty) {
-      content = ListView.builder(
-        itemCount: _groceryItems.length,
-        itemBuilder: (context, index) => Dismissible(
-          key: ValueKey(_groceryItems[index].id),
-          background: Container(
-            color: Theme.of(context).colorScheme.error,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Icon(
-                  Icons.delete_sweep,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-              ],
-            ),
-          ),
-          onDismissed: (direction) {
-            _dismissItem(index, _groceryItems[index]);
-          },
-          child: GroceryTile(
-            groceryItem: _groceryItems[index],
-            editGrocery: () {
-              _editItem(index, _groceryItems[index]);
-            },
-          ),
-        ),
-      );
-    }
-
-    if (_error != null) {
-      content = Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 50,
-              color: Colors.red,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Your Groceries'),
         elevation: 5,
       ),
-      body: content,
+      body: FutureBuilder(
+        future: _loadedGroceries,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator.adaptive(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 50,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Text(
+                    snapshot.error.toString(),
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (snapshot.data!.isEmpty) {
+            Center(
+              heightFactor: 2,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  Image.asset(
+                    'assets/groceries_add.png',
+                    width: 250,
+                    height: 400,
+                  ),
+                  const Text(
+                    'Once you add a new grocery, you\'ll see it listed here',
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) => Dismissible(
+              key: ValueKey(snapshot.data![index].id),
+              background: Container(
+                color: Theme.of(context).colorScheme.error,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Icon(
+                      Icons.delete_sweep,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                  ],
+                ),
+              ),
+              onDismissed: (direction) {
+                _dismissItem(index, snapshot.data![index]);
+              },
+              child: GroceryTile(
+                groceryItem: snapshot.data![index],
+                editGrocery: () {
+                  _editItem(index, snapshot.data![index]);
+                },
+              ),
+            ),
+          );
+        },
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(
           right: 20,
