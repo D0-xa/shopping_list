@@ -6,9 +6,11 @@ class GroceryTile extends StatelessWidget {
   const GroceryTile({
     super.key,
     required this.groceryItem,
+    required this.editGrocery,
   });
 
   final GroceryItem groceryItem;
+  final void Function() editGrocery;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,19 @@ class GroceryTile extends StatelessWidget {
       ),
       horizontalTitleGap: 30,
       title: Text(groceryItem.name),
-      trailing: Text(groceryItem.quantity.toString()),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(groceryItem.quantity.toString()),
+          const SizedBox(
+            width: 10,
+          ),
+          IconButton.filledTonal(
+            onPressed: editGrocery,
+            icon: const Icon(Icons.edit_rounded),
+          )
+        ],
+      ),
       leadingAndTrailingTextStyle: TextStyle(
           fontSize: 16, color: Theme.of(context).colorScheme.inverseSurface),
     );
